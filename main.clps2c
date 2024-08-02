@@ -2,7 +2,6 @@ set setGlobals 0x009D2C00
 set callTwoHandlers 0x009D2C40
 set maxSelectionBoxToFour 0x009D2CE0
 set useSubIndexForSelection 0x009D2C90
-set synchronizeHandlers 0x009D2F90
 
 set setCustomIteratorDrawOptions 0x009D2D30
 set maxDrawOptionsToFour 0x009D2E00
