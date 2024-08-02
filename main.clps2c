@@ -2,6 +2,7 @@ set setGlobals 0x009D2C00
 set callTwoHandlers 0x009D2C40
 set maxSelectionBoxToFour 0x009D2CE0
 set useSubIndexForSelection 0x009D2C90
+set synchronizeHandlers 0x009D2F90
 
 set setCustomIteratorDrawOptions 0x009D2D30
 set maxDrawOptionsToFour 0x009D2E00
@@ -11,6 +12,7 @@ set hardCodeYPositionsWhenScrollable 0x009D2EE0
 // 009D2BE0 -> Number of total choices
 // 009D2BE4 -> Super index
 // 009D2BE8 -> Sub index
+// 009D2BEC -> Synchronized flag
 // GLOBALS //
 
 ASM_START 0x003a7fd0
@@ -32,6 +34,7 @@ ASM_START setGlobals
     sh $s2, 0x2BE0($a0) // Save total choices
     sw $zero, 0x2BE4($a0) // Reset super index
     sw $zero, 0x2BE8($a0) // Reset sub index
+    sw $zero, 0x2BEC($a0) // Reset synchronization flag
     j 0x003A3A0C
     nop
 ASM_END
@@ -57,14 +60,25 @@ ASM_START callTwoHandlers
 ASM_END
 
 ASM_START useSubIndexForSelection
-    lui $a1, 0x009d
-    lw $a1, 0x2BE8($a1)
-    j 0x003A8188
+    lui $v0, 0x009d
+    lw $v1, 0x2BEC($v0) // Load synchronization flag
+    bne $v1, $zero, synchronizedHandlers
     nop
+    li $v1, 0x1
+    sw $v1, 0x2BEC($v0) // Set synchronization flag
+
+    lh $a1, 0x58($a0)
+    sw $a1, 0x2BE8($v0)
+    
+    synchronizedHandlers: lw $a1, 0x2BE8($v0) // Load subindex
+    lw $a1, 0x2BE8($v0)
+    j 0x003A8188
+    li $v1, -0x1
 ASM_END
 
 ASM_START 0x003a8180
     j 0x009D2C90
+    nop
 ASM_END
 
 ASM_START 0x003a819c
