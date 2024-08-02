@@ -1,0 +1,169 @@
+set setGlobals 0x009D2C00
+set callTwoHandlers 0x009D2C40
+set maxSelectionBoxToFour 0x009D2CE0
+set useSubIndexForSelection 0x009D2C90
+
+set setCustomIteratorDrawOptions 0x009D2D30
+set maxDrawOptionsToFour 0x009D2E00
+set hardCodeYPositionsWhenScrollable 0x009D2EE0
+
+// GLOBALS //
+// 009D2BE0 -> Number of total choices
+// 009D2BE4 -> Super index
+// 009D2BE8 -> Sub index
+// GLOBALS //
+
+ASM_START 0x003a7fd0
+    li $a1, 0xf // Set custom id for multiple choice msgs
+ASM_END
+
+ASM_START 0x003A7D48
+    nop // Cancel sound cue for moving in normal selector handler
+ASM_END
+
+ASM_START 0x03A3A04
+    j 0x009D2C00
+    sw $v0,0xC($s1)
+ASM_END
+
+ASM_START setGlobals
+    sh $s2,0x1A($s1)
+    lui $a0, 0x009d
+    sh $s2, 0x2BE0($a0) // Save total choices
+    sw $zero, 0x2BE4($a0) // Reset super index
+    sw $zero, 0x2BE8($a0) // Reset sub index
+    j 0x003A3A0C
+    nop
+ASM_END
+
+ASM_START 0x003A7770
+    j 0x009D2C40
+    nop
+ASM_END
+
+ASM_START callTwoHandlers
+    lui $v0, 0x009d
+    lw $a0, 0x2BE0($v0)
+    li $a1, 0x4
+    addiu $a2, $v0, 0x2BE4
+    addiu $a3, $v0, 0x2BE8
+    jal 0x0011abd0 // Call multi indexing handler to update sub/super index
+    nop
+    move $a0, $s5
+    jal 0x003a7a40 // Call original handler for extra sounds and keep behaviour intact
+    nop
+    j 0x003a7778
+    nop
+ASM_END
+
+ASM_START useSubIndexForSelection
+    lui $a1, 0x009d
+    lw $a1, 0x2BE8($a1)
+    j 0x003A8188
+    nop
+ASM_END
+
+ASM_START 0x003a8180
+    j 0x009D2C90
+ASM_END
+
+ASM_START 0x003a819c
+    j 0x009D2CE0
+    lh $v1,0x1a($a2)
+ASM_END
+
+ASM_START maxSelectionBoxToFour
+    li $v0, 0x4
+    slt $v0, $v0, $v1
+    beq $v0, $zero, lessThanFour
+    nop
+    li $v1, 0x4 // If there are more than 4 elements in a msg we will force rounded selection to position like there are only 4 elements
+    lessThanFour: li $v0, 0x4
+    j 0x003a81a4
+    nop
+ASM_END
+
+ASM_START 0x003b1494
+    j 0x009D2D30
+    nop
+ASM_END
+
+ASM_START setCustomIteratorDrawOptions
+    addiu $sp, $sp, -0x20
+    sd $t9, 0x0($sp)
+    sd $fp, 0x10($sp)
+    li $t9, 0xf
+    bne $t9, $s5, noMultipleChoice // Check if we are in multiple choice
+    nop
+    lui $t9, 0x009d
+    lw $t9, 0x2BE4($t9) // Load super index
+    li $fp, 0x0
+
+    b offsetDrawEnd // We offset the drawing options to the current super index
+    nop
+    offsetDrawStart: lw $s4, 0x28($s4)
+    addiu $fp, $fp, 0x1
+    offsetDrawEnd: bne $fp, $t9, offsetDrawStart
+    nop
+
+    noMultipleChoice: li $t9, 0x5
+    j 0x003b16a0
+    nop
+ASM_END
+
+ASM_START 0x003b16a0
+    j 0x009D2E00
+    nop
+ASM_END
+
+ASM_START maxDrawOptionsToFour
+    li $v1, 1
+    sub $t9, $t9, $v1
+    beq $t9, $zero, endDrawing
+    nop
+    bne $s4, $zero, drawLoopStart
+    nop
+    endDrawing: ld $t9, 0x0($sp)
+    ld $fp, 0x10($sp)
+    addiu $sp, $sp, 0x20
+    j 0x003B16A8
+    nop
+    drawLoopStart: j 0x003b149c
+    nop
+ASM_END
+
+ASM_START 0x003b14a0
+    j 0x009D2EE0
+ASM_END
+
+ASM_START hardCodeYPositionsWhenScrollable
+    li $v0, 0xf
+    bne $s5, $v0, endPositions // We look if we are in multiple choice
+    nop
+    li $v0, 0x4
+    lui $v1, 0x009d
+    lw $v1, 0x2BE0($v1)
+    slt $v0, $v1, $v0
+    bne $v0, $zero, endPositions // We look if we have more than 4 elements to force the values
+    nop
+
+    li $v0, 0x4
+    beq $v0, $t9, continueWithValue 
+    li $s6, 0x788 // Change first position
+    
+    li $v0, 0x3
+    beq $v0, $t9, continueWithValue 
+    li $s6, 0x850 // Change second position
+
+    li $v0, 0x2
+    beq $v0, $t9, continueWithValue 
+    li $s6, 0x918 // Change third position
+
+    li $s6, 0x9E0 // Change fourth position
+    b continueWithValue
+    nop
+
+    endPositions: lw $s6, 0x8($s4)
+    continueWithValue: j 0x003B14A8
+    nop
+ASM_END
