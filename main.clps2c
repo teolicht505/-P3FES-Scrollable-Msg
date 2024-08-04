@@ -9,6 +9,8 @@ set hardCodeYPositionsWhenScrollable 0x009D2EE0
 
 set fixScrollingL2R2 0x009D2F70
 
+set customSliderDraw 0x009D33C0
+
 // GLOBALS //
 // 009D2BE0 -> Number of total choices
 // 009D2BE4 -> Super index
@@ -199,5 +201,153 @@ ASM_START fixScrollingL2R2
     j 0x0011AF64
     nop
     noPressed: j 0x0011AFE4
+    nop
+ASM_END
+
+ASM_START 0x003ab26c
+    j 0x009D33C0
+    nop
+ASM_END
+
+ASM_START customSliderDraw
+    jal 0x00115980 // Clean SPR (original call)
+    nop
+
+    lui $v1, 0x009d
+    lw $v1, 0x2BE0($v1)
+    li $a0, 0x4
+    slt $v1, $a0, $v1
+    beq $v1, $zero, endSliderDrawn // Skip slider drawing if there are 4 elements or less
+    nop
+
+    // DRAW TOP OUTTER PART SLIDER //
+    daddu $a0,$zero,$zero
+    lw $a1,-0x469C($gp)
+    addiu $a2,$zero,0x2c
+    jal 0x001158b0
+    nop
+    daddu $s1, $v0, $zero
+
+    li $a0, 0xd5 // X position
+    mtc1 $a0,$f0 
+    nop 
+    cvt.s.w $f0,$f0
+    swc1 $f0,0x10($v0)
+
+    li $a0, 0xfa // Y position
+    mtc1 $a0,$f0 
+    nop 
+    cvt.s.w $f0,$f0
+    swc1 $f0,0x14($v0)
+
+    sw $zero,0x2C($v0)
+    sb $s0,0x19($v0)
+    daddu $a0,$s1,$zero
+    addiu $a1,$zero,0x1
+    jal 0x001127d0
+    nop 
+    daddu $a0,$s1,$zero
+    jal 0x00115980
+    nop 
+    // DRAW TOP OUTTER PART SLIDER //
+    
+    // DRAW BOTTOM OUTTER PART SLIDER //
+    daddu $a0,$zero,$zero
+    lw $a1,-0x469C($gp)
+    addiu $a2,$zero,0x2d
+    jal 0x001158b0
+    nop 
+    daddu $s1, $v0, $zero
+
+    li $a0, 0xd5 // X position
+    mtc1 $a0,$f0 
+    nop 
+    cvt.s.w $f0,$f0
+    swc1 $f0,0x10($v0)
+
+    li $a0, 0x140 // Y position
+    mtc1 $a0,$f0 
+    nop 
+    cvt.s.w $f0,$f0
+    swc1 $f0,0x14($v0)
+
+    sw $zero,0x2C($v0)
+    sb $s0,0x19($v0)
+    daddu $a0,$s1,$zero
+    addiu $a1,$zero,0x1
+    jal 0x001127d0
+    nop 
+    daddu $a0,$s1,$zero
+    jal 0x00115980
+    nop 
+    // DRAW BOTTOM OUTTER PART SLIDER //
+    
+    // DRAW INNER SLIDER //
+    daddu $a0,$zero,$zero
+    lw $a1,-0x469C($gp)
+    addiu $a2,$zero,0x2b
+    jal 0x001158b0
+    nop 
+    daddu $s1, $v0, $zero
+    
+    li $a0, 0xd7 // X position
+    lui $a0, 0x4356
+    addiu $a0, $a0, 0xEB85
+    mtc1 $a0,$f0 
+    nop 
+    swc1 $f0,0x10($v0)
+
+    li $a0, 0xf5 // Y initial position
+    mtc1 $a0,$f2 
+    nop 
+    cvt.s.w $f2,$f2
+    
+
+    lui $a2, 0x009d
+    lw $a1,0x2be0($a2) // Get total elements of MSG list
+    addiu $a0,$a1,-0x4
+    blez $a0,noSliderElements
+    nop 
+    lw $v1, 0x2be4($a2) // Get super index
+    addiu $a2,$zero,0x35
+    mult $v1, $a2
+    mflo $a2
+    div $a2,$a0
+    nop 
+    nop 
+    mflo $a2
+    beq $zero,$zero,continueSliderDraw
+    nop 
+    noSliderElements: daddu $a2,$zero,$zero
+    continueSliderDraw: mtc1 $a2,$f0
+    nop
+
+    // Calculate new Y position for current selected element 
+    // depending on the number of selectable elements in MSG
+    cvt.s.w $f1,$f0
+    lui $a2,0x4208
+    mtc1 $a2,$f0
+    nop
+    add.s $f0,$f0,$f2
+    add.s $f1,$f0,$f1
+    lui $a2,0x41C0
+    mtc1 $a2,$f0
+    nop
+    sub.s $f2,$f1,$f0 // Final Y position inner part
+
+    swc1 $f2,0x14($v0)
+
+    sw $zero,0x2C($v0)
+    sb $s0,0x19($v0)
+    daddu $a0,$s1,$zero
+    addiu $a1,$zero,0x1
+    jal 0x001127d0
+    nop 
+    daddu $a0,$s1,$zero
+    jal 0x00115980
+    nop 
+    // DRAW INNER SLIDER //
+    
+    endSliderDrawn: j 0x003ab274
     nop
 ASM_END
