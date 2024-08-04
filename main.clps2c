@@ -7,6 +7,8 @@ set setCustomIteratorDrawOptions 0x009D2D30
 set maxDrawOptionsToFour 0x009D2E00
 set hardCodeYPositionsWhenScrollable 0x009D2EE0
 
+set fixScrollingL2R2 0x009D2F70
+
 // GLOBALS //
 // 009D2BE0 -> Number of total choices
 // 009D2BE4 -> Super index
@@ -178,5 +180,24 @@ ASM_START hardCodeYPositionsWhenScrollable
 
     endPositions: lw $s6, 0x8($s4)
     continueWithValue: j 0x003B14A8
+    nop
+ASM_END
+
+ASM_START 0x0011af5c
+    j 0x009D2F70
+    nop
+ASM_END
+
+ASM_START fixScrollingL2R2
+    li $t0, 0x4
+    bne $s4, $t0, L2R2On
+    nop
+    j 0x0011B070
+    nop
+    L2R2On: beq $v1, $zero, noPressed
+    nop
+    j 0x0011AF64
+    nop
+    noPressed: j 0x0011AFE4
     nop
 ASM_END
