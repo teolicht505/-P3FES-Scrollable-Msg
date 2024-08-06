@@ -166,17 +166,17 @@ ASM_START hardCodeYPositionsWhenScrollable
 
     li $v0, 0x4
     beq $v0, $t9, continueWithValue 
-    li $s6, 0x788 // Change first position
+    li $s6, 0x6AA // Change first position
     
     li $v0, 0x3
     beq $v0, $t9, continueWithValue 
-    li $s6, 0x850 // Change second position
+    li $s6, 0x772 // Change second position
 
     li $v0, 0x2
     beq $v0, $t9, continueWithValue 
-    li $s6, 0x918 // Change third position
+    li $s6, 0x83A // Change third position
 
-    li $s6, 0x9E0 // Change fourth position
+    li $s6, 0x902 // Change fourth position
     b continueWithValue
     nop
 
