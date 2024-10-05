@@ -134,18 +134,25 @@ ASM_START 0x003b16a0
 ASM_END
 
 ASM_START maxDrawOptionsToFour
-    li $v1, 1
+    li $v1, 0xf // Our custom message type
+    bne $v1, $s5, normalMsgCheck // If it's not multiple choice, print all msgs normally
+    nop
+    li $v1, 1 // Multiple choice path
     sub $t9, $t9, $v1
     beq $t9, $zero, endDrawing
     nop
     bne $s4, $zero, drawLoopStart
     nop
-    endDrawing: ld $t9, 0x0($sp)
+    endDrawing: ld $t9, 0x0($sp) // Safely exit from current msg draw
     ld $fp, 0x10($sp)
     addiu $sp, $sp, 0x20
     j 0x003B16A8
     nop
     drawLoopStart: j 0x003b149c
+    nop
+    normalMsgCheck: bne $s4, $zero, drawLoopStart
+    nop
+    b endDrawing 
     nop
 ASM_END
 
